@@ -67,6 +67,7 @@ public class FileDbAdapter {
 
     private static final String added = "Added";
     private static final String saved = "Saved";
+    private static final String finished = "Finished";
     private static final String submitted = "Submitted";
 
     private DatabaseHelper mDbHelper;
@@ -138,8 +139,10 @@ public class FileDbAdapter {
         String tag = added;
         if (status.equals(STATUS_SUBMITTED)) {
             tag = submitted;
-        } else if (status.equals(STATUS_COMPLETE) || status.equals(STATUS_INCOMPLETE)) {
+        } else if (status.equals(STATUS_INCOMPLETE)) {
             tag = saved;
+        } else if (status.equals(STATUS_COMPLETE)) {
+        	tag = finished;
         }
         String ts =
             new SimpleDateFormat("EEE, MMM dd, yyyy 'at' HH:mm").format(new Date(timestamp));
@@ -389,7 +392,7 @@ public class FileDbAdapter {
 
     public void removeOrphanFormDefs() {
         if (FileUtils.createFolder(FileUtils.CACHE_PATH)) {
-            ArrayList<String> cachedForms = FileUtils.getFilesAsArrayList(FileUtils.CACHE_PATH);
+            ArrayList<String> cachedForms = FileUtils.getValidFormsAsArrayList(FileUtils.CACHE_PATH);
 
             Cursor c = null;
             // remove orphaned form defs
@@ -429,7 +432,7 @@ public class FileDbAdapter {
         if (FileUtils.createFolder(FileUtils.FORMS_PATH)) {
 
             // full path to the raw xml forms stored on sd card
-            ArrayList<String> storedForms = FileUtils.getFilesAsArrayList(FileUtils.FORMS_PATH);
+            ArrayList<String> storedForms = FileUtils.getValidFormsAsArrayList(FileUtils.FORMS_PATH);
 
             String hash = null;
             String path = null;
@@ -437,7 +440,7 @@ public class FileDbAdapter {
 
             // loop through forms on sdcard.
             if (storedForms != null) {
-                for (String formPath : storedForms) {
+                for (String formPath : storedForms) {                   
                     // only add forms
                     if (!(formPath.endsWith(".xml") || formPath.endsWith(".xhtml")))
                         continue;
@@ -483,7 +486,7 @@ public class FileDbAdapter {
         if (FileUtils.createFolder(FileUtils.FORMS_PATH)) {
 
             // full path to the raw xml forms stored on sd card
-            ArrayList<String> storedForms = FileUtils.getFilesAsArrayList(FileUtils.FORMS_PATH);
+            ArrayList<String> storedForms = FileUtils.getValidFormsAsArrayList(FileUtils.FORMS_PATH);
 
             String hash = null;
             // String path = null;
@@ -521,7 +524,8 @@ public class FileDbAdapter {
                 FileUtils.getFoldersAsArrayList(FileUtils.INSTANCES_PATH);
 
             FilenameFilter ff = new FilenameFilter() {
-                public boolean accept(File dir, String filename) {
+                @Override
+				public boolean accept(File dir, String filename) {
                     return filename.endsWith("xml");
                 }
             };

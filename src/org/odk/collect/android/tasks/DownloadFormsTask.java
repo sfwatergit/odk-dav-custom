@@ -75,7 +75,7 @@ public class DownloadFormsTask extends
             HashMap<String, String> formList = new HashMap<String, String>();
             URL u = null;
             try {
-                u = new URL((String) values[0].get(FormDownloadList.LIST_URL));
+                u = new URL(values[0].get(FormDownloadList.LIST_URL));
             } catch (MalformedURLException e) {
                 formList.put(DL_ERROR_MSG, e.getLocalizedMessage());
                 e.printStackTrace();
@@ -125,7 +125,7 @@ public class DownloadFormsTask extends
             }
             return formList;
 
-        } else {
+        } else if (values != null) {
             // This downloads the selected forms.
             HashMap<String, String> toDownload = values[0];
             HashMap<String, String> result = new HashMap<String, String>();
@@ -140,7 +140,7 @@ public class DownloadFormsTask extends
 
             for (int i = 0; i < total; i++) {
                 String form = formNames.get(i);
-                publishProgress(form, new Integer(count).toString(), new Integer(total).toString());
+                publishProgress(form, Integer.valueOf(count).toString(), Integer.valueOf(total).toString());
                 try {
                     File dl = downloadFile(form, toDownload.get(form));
 
@@ -183,6 +183,8 @@ public class DownloadFormsTask extends
 
             return result;
         }
+        
+		return null;
     }
 
 

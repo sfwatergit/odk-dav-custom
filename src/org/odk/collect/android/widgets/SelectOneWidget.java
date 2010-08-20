@@ -24,7 +24,6 @@ import org.odk.collect.android.views.IAVTLayout;
 import org.odk.collect.android.views.QuestionView;
 
 import android.content.Context;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.CompoundButton;
@@ -46,7 +45,7 @@ import java.util.Vector;
  * LinearLayout
  */
 public class SelectOneWidget extends RadioGroup implements IQuestionWidget, OnCheckedChangeListener {
-    private final int RANDOM_BUTTON_ID = 4853487;
+    private static final int RANDOM_BUTTON_ID = 4853487;
     Vector<SelectChoice> mItems;
 
     Vector<RadioButton> buttons;
@@ -57,7 +56,8 @@ public class SelectOneWidget extends RadioGroup implements IQuestionWidget, OnCh
     }
 
 
-    public void clearAnswer() {
+    @Override
+	public void clearAnswer() {
         for (RadioButton button : this.buttons) {
             if (button.isChecked()) {
                 button.setChecked(false);
@@ -67,7 +67,8 @@ public class SelectOneWidget extends RadioGroup implements IQuestionWidget, OnCh
     }
 
 
-    public IAnswerData getAnswer() {
+    @Override
+	public IAnswerData getAnswer() {
         int i = getCheckedId();
         if (i == -1) {
             return null;
@@ -78,7 +79,8 @@ public class SelectOneWidget extends RadioGroup implements IQuestionWidget, OnCh
     }
 
 
-    public void buildView(final FormEntryPrompt prompt) {
+    @Override
+	public void buildView(final FormEntryPrompt prompt) {
         mItems = prompt.getSelectChoices();
         buttons = new Vector<RadioButton>();
 
@@ -103,25 +105,19 @@ public class SelectOneWidget extends RadioGroup implements IQuestionWidget, OnCh
                 }
 
                 String audioURI = null;
-                if (prompt.getSelectTextForms(mItems.get(i)).contains(
-                    FormEntryCaption.TEXT_FORM_AUDIO)) {
-                    audioURI =
-                        prompt.getSelectChoiceText(mItems.get(i), FormEntryCaption.TEXT_FORM_AUDIO);
-                }
+                audioURI =
+                        prompt.getSpecialFormSelectChoiceText(mItems.get(i), FormEntryCaption.TEXT_FORM_AUDIO);
+
 
                 String imageURI = null;
-                if (prompt.getSelectTextForms(mItems.get(i)).contains(
-                    FormEntryCaption.TEXT_FORM_IMAGE)) {
-                    imageURI =
-                        prompt.getSelectChoiceText(mItems.get(i), FormEntryCaption.TEXT_FORM_IMAGE);
-                }
+                imageURI =
+                        prompt.getSpecialFormSelectChoiceText(mItems.get(i), FormEntryCaption.TEXT_FORM_IMAGE);
+                
 
                 String videoURI = null; // TODO: uncomment when video ready
-                /*
-                 * if (prompt.getSelectTextForms(mItems.get(i)).contains(
-                 * FormEntryCaption.TEXT_FORM_IMAGE)) { imageURI =
-                 * prompt.getSelectChoiceText(mItems.get(i), FormEntryCaption.TEXT_FORM_IMAGE); }
-                 */
+                videoURI =
+                		prompt.getSpecialFormSelectChoiceText(mItems.get(i), "video");
+                 
 
                 IAVTLayout mediaLayout = new IAVTLayout(getContext());
                 mediaLayout.setAVT(r, audioURI, imageURI, videoURI);
@@ -138,7 +134,8 @@ public class SelectOneWidget extends RadioGroup implements IQuestionWidget, OnCh
     }
 
 
-    public void setFocus(Context context) {
+    @Override
+	public void setFocus(Context context) {
         // Hide the soft keyboard if it's showing.
         InputMethodManager inputManager =
             (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -156,7 +153,8 @@ public class SelectOneWidget extends RadioGroup implements IQuestionWidget, OnCh
     }
 
 
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+    @Override
+	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         if (!isChecked) {
             // If it got unchecked, we don't care.
             return;

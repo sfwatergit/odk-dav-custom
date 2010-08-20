@@ -79,14 +79,11 @@ public class InstanceChooserList extends ListActivity {
      * Retrieves instance information from {@link FileDbAdapter}, composes and displays each row.
      */
     private void refreshView() {
-        // retrieve status information from instance. needed for tabs.
-        Intent i = getIntent();
-        String status = i.getStringExtra(FileDbAdapter.KEY_STATUS);
 
-        // get all instances that match the status.
+    	// get all instances
         FileDbAdapter fda = new FileDbAdapter();
         fda.open();
-        Cursor c = fda.fetchFilesByType(FileDbAdapter.TYPE_INSTANCE, status);
+        Cursor c = fda.fetchFilesByType(FileDbAdapter.TYPE_INSTANCE, null);
         startManagingCursor(c);
 
         // create data and views for cursor adapter
@@ -120,7 +117,7 @@ public class InstanceChooserList extends ListActivity {
         String formName = pattern.split(instancePath)[0];
         formName = formName.substring(formName.lastIndexOf("/") + 1);
 
-        File xmlFile = new File(FileUtils.FORMS_PATH + "/" + formName + ".xml");
+        File xmlFile = new File(FileUtils.FORMS_PATH + "/"  + formName + ".xml");
         File xhtmlFile = new File(FileUtils.FORMS_PATH + "/" + formName + ".xhtml");
 
         // form is either xml or xhtml file. find the appropriate one.

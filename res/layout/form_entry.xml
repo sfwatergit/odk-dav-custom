@@ -19,8 +19,7 @@ the License.
   android:layout_height="fill_parent" 
   android:id="@+id/rl" >  
  
-<!-- Progress bar at this level will cause problems with powered-by positioning.
-  <ProgressBar 
+<!--<ProgressBar 
     android:id="@+id/progressbar"
     android:progressDrawable="@+drawable/progressbar" 
     android:indeterminateDrawable="@+drawable/progressbar" 
@@ -30,5 +29,5 @@ the License.
     android:minHeight="20dip" 
     android:maxHeight="20dip"
     android:layout_alignParentBottom="true" /> 
-    -->
-</RelativeLayout>
+    
+--></RelativeLayout>

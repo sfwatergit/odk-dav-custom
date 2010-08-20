@@ -32,7 +32,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 /**
- * Responsible for using a {@link FormEntryQuestion} and based on the question type and answer type,
+ * Responsible for using a {@link FormEntryCaption} and based on the question type and answer type,
  * displaying the appropriate widget. The class also sets (but does not save) and gets the answers
  * to questions.
  * 
@@ -144,7 +144,7 @@ public class QuestionView extends ScrollView {
     private void AddQuestionText(FormEntryPrompt p) {
         String imageURI = p.getImageText();
         String audioURI = p.getAudioText();
-        String videoURI = null; // TODO: make this a value.
+        String videoURI = p.getSpecialFormQuestionText("video"); // TODO: make this a value.
 
         // Add the text view. Textview always exists, regardless of whether there's text.
         TextView questionText = new TextView(getContext());

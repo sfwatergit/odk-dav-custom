@@ -47,6 +47,25 @@ public class FileUtils {
     public static final String CACHE_PATH = Environment.getExternalStorageDirectory() + "/odk/.cache/";
     public static final String TMPFILE_PATH = CACHE_PATH + "tmp.jpg";
 
+    
+    public static ArrayList<String> getValidFormsAsArrayList(String path) {
+       // ArrayList<String> dirs = getFoldersAsArrayList(path);
+        ArrayList<String> formPaths = new ArrayList<String>();
+        File dir = new File(path);
+        File[] dirs = dir.listFiles();
+        for (int i = 0; i < dirs.length; i++) {
+        	// skip all the -media directories
+        	if (dirs[i].isDirectory())
+        		continue;
+        	
+            String formName = dirs[i].getName();
+        	Log.e("Carl", "trying formname: " + formName);
+
+        	formPaths.add(dirs[i].getAbsolutePath());
+           
+        }
+        return formPaths;
+    }
 
     public static ArrayList<String> getFoldersAsArrayList(String path) {
         ArrayList<String> mFolderList = new ArrayList<String>();
@@ -70,65 +89,6 @@ public class FileUtils {
             }
         }
         return mFolderList;
-    }
-
-
-    /**
-     * 
-     * @param path
-     * @return list of files that are not hidden and not directories.
-     */
-    public static ArrayList<String> getFilesAsArrayList(String path) {
-        ArrayList<String> mFileList = new ArrayList<String>();
-        File root = new File(path);
-
-        if (!storageReady()) {
-            return null;
-        }
-        if (!root.exists()) {
-            if (!createFolder(path)) {
-                return null;
-            }
-        }
-        if (root.isDirectory()) {
-            File[] children = root.listFiles();
-            for (File child : children) {
-                String filename = child.getName();
-                // no hidden files
-                if (!(filename.startsWith(".") || child.isDirectory())) {
-                    mFileList.add(child.getAbsolutePath());
-                }
-            }
-        } else {
-            String filename = root.getName();
-            // no hidden files
-            if (!filename.startsWith(".")) {
-                mFileList.add(root.getAbsolutePath());
-            }
-        }
-        return mFileList;
-    }
-    
-    
-
-
-    public static ArrayList<String> getFilesAsArrayListRecursive(String path) {
-        ArrayList<String> mFileList = new ArrayList<String>();
-        File root = new File(path);
-        getFilesAsArrayListRecursiveHelper(root, mFileList);
-        return mFileList;
-    }
-
-
-    private static void getFilesAsArrayListRecursiveHelper(File f, ArrayList<String> filelist) {
-        if (f.isDirectory()) {
-            File[] childs = f.listFiles();
-            for (File child : childs) {
-                getFilesAsArrayListRecursiveHelper(child, filelist);
-            }
-            return;
-        }
-        filelist.add(f.getAbsolutePath());
     }
 
 
@@ -235,7 +195,7 @@ public class FileUtils {
     }
 
 
-    private static boolean storageReady() {
+    public static boolean storageReady() {
         String cardstatus = Environment.getExternalStorageState();
         if (cardstatus.equals(Environment.MEDIA_REMOVED)
                 || cardstatus.equals(Environment.MEDIA_UNMOUNTABLE)
@@ -286,6 +246,7 @@ public class FileUtils {
             String md5 = number.toString(16);
             while (md5.length() < 32)
                 md5 = "0" + md5;
+            is.close();
             return md5;
 
         } catch (NoSuchAlgorithmException e) {
@@ -298,7 +259,8 @@ public class FileUtils {
         } catch (IOException e) {
             Log.e("Problem reading from file", e.getMessage());
             return null;
-        }
+        } 
+        
 
     }
 

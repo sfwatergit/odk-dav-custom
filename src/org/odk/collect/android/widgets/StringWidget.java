@@ -24,7 +24,6 @@ import android.content.Context;
 import android.text.method.TextKeyListener;
 import android.text.method.TextKeyListener.Capitalize;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.inputmethod.InputMethodManager;
@@ -37,6 +36,8 @@ import android.widget.EditText;
  * @author Yaw Anokwa (yanokwa@gmail.com)
  */
 public class StringWidget extends EditText implements IQuestionWidget {
+    
+    boolean mReadOnly = false;
 
     public StringWidget(Context context) {
         this(context, null);
@@ -53,12 +54,14 @@ public class StringWidget extends EditText implements IQuestionWidget {
     }
 
 
-    public void clearAnswer() {
+    @Override
+	public void clearAnswer() {
         setText(null);
     }
 
 
-    public IAnswerData getAnswer() {
+    @Override
+	public IAnswerData getAnswer() {
         String s = getText().toString();
         if (s == null || s.equals("")) {
             return null;
@@ -68,7 +71,8 @@ public class StringWidget extends EditText implements IQuestionWidget {
     }
 
 
-    public void buildView(FormEntryPrompt prompt) {
+    @Override
+	public void buildView(FormEntryPrompt prompt) {
         // font size
         setTextSize(TypedValue.COMPLEX_UNIT_PX, QuestionView.APPLICATION_FONTSIZE);
 
@@ -80,12 +84,13 @@ public class StringWidget extends EditText implements IQuestionWidget {
         setSingleLine(false);
 
         if (prompt != null) {
+            mReadOnly = prompt.isReadOnly();
             String s = prompt.getAnswerText();
             if (s != null) {
                 setText(s);
             }
 
-            if (prompt.isReadOnly()) {
+            if (mReadOnly) {
                 setBackgroundDrawable(null);
                 setFocusable(false);
                 setClickable(false);
@@ -95,12 +100,18 @@ public class StringWidget extends EditText implements IQuestionWidget {
     }
 
 
-    public void setFocus(Context context) {
+    @Override
+	public void setFocus(Context context) {
         // Put focus on text input field and display soft keyboard if appropriate.
         this.requestFocus();
         InputMethodManager inputManager =
             (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-        inputManager.showSoftInput(this, 0);
+        if (!mReadOnly) {
+            inputManager.showSoftInput(this, 0);
+        }
+        else {
+            inputManager.hideSoftInputFromWindow(this.getWindowToken(), 0);
+        }
     }
 
 

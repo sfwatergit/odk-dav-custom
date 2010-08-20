@@ -14,32 +14,26 @@
 
 package org.odk.collect.android.activities;
 
+import java.util.ArrayList;
+
 import org.odk.collect.android.R;
 import org.odk.collect.android.database.FileDbAdapter;
 import org.odk.collect.android.preferences.ServerPreferences;
 import org.odk.collect.android.utilities.FileUtils;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.Toast;
-import android.widget.ImageView.ScaleType;
-
-import java.util.ArrayList;
-import java.util.Set;
 
 /**
  * Responsible for displaying buttons to launch the major activities. Launches some activities based
@@ -58,9 +52,6 @@ public class MainMenuActivity extends Activity {
     // menu options
     private static final int MENU_PREFERENCES = Menu.FIRST;
 
-    // true if splash screen should be shown during onCreate
-    private static boolean mShowSplash = true;
-
     // buttons
     private Button mEnterDataButton;
     private Button mManageFilesButton;
@@ -72,21 +63,27 @@ public class MainMenuActivity extends Activity {
     private static int mCompletedCount;
     private static int mAvailableCount;
     private static int mFormsCount;
-    
+
+	private AlertDialog mAlertDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-    	super.onCreate(savedInstanceState);
-        displaySplash();
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.main_menu);
         setTitle(getString(R.string.app_name) + " > " + getString(R.string.main_menu));
-
         
+        // if sd card error, quit
+        if (!FileUtils.storageReady()) {
+        	createErrorDialog(getString(R.string.no_sd_error),true);
+        }
+
         // enter data button. expects a result.
         mEnterDataButton = (Button) findViewById(R.id.enter_data);
         mEnterDataButton.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
+            @Override
+			public void onClick(View v) {
                 // make sure we haven't added forms
-                ArrayList<String> forms = FileUtils.getFilesAsArrayList(FileUtils.FORMS_PATH);
+                ArrayList<String> forms = FileUtils.getValidFormsAsArrayList(FileUtils.FORMS_PATH);
                 if (forms != null) {
                     mFormsCount = forms.size();
                 } else {
@@ -108,7 +105,8 @@ public class MainMenuActivity extends Activity {
         // review data button. expects a result.
         mReviewDataButton = (Button) findViewById(R.id.review_data);
         mReviewDataButton.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
+            @Override
+			public void onClick(View v) {
                 if ((mSavedCount + mCompletedCount) == 0) {
                     Toast.makeText(getApplicationContext(),
                         getString(R.string.no_items_error, getString(R.string.review)),
@@ -125,7 +123,8 @@ public class MainMenuActivity extends Activity {
         // send data button. expects a result.
         mSendDataButton = (Button) findViewById(R.id.send_data);
         mSendDataButton.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
+            @Override
+			public void onClick(View v) {
                 if (mCompletedCount == 0) {
                     Toast.makeText(getApplicationContext(),
                         getString(R.string.no_items_error, getString(R.string.send)),
@@ -142,67 +141,25 @@ public class MainMenuActivity extends Activity {
         mManageFilesButton = (Button) findViewById(R.id.manage_forms);
         mManageFilesButton.setText(getString(R.string.manage_files));
         mManageFilesButton.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
+            @Override
+			public void onClick(View v) {
                 Intent i = new Intent(getApplicationContext(), FileManagerTabs.class);
                 startActivity(i);
             }
         });
     }
 
-    
-    /**
-     * displaySplash
+    /*
+     * (non-Javadoc)
      * 
-     * Shows the splash screen if the mShowSplash member variable is true.
-     * Otherwise a no-op.
+     * @see android.app.Activity#onPause()
      */
-    void displaySplash() {
-    	if ( ! mShowSplash ) return;
-    	
-    	// fetch the splash screen Drawable
-        Drawable image = null;
-        try {
-        	// attempt to load the configured default splash screen
-    		BitmapDrawable bitImage = new BitmapDrawable( getResources(), 
-    										FileUtils.SPLASH_SCREEN_FILE_PATH );
-    		if ( bitImage.getBitmap() != null &&
-    			 bitImage.getIntrinsicHeight() > 0 &&
-    			 bitImage.getIntrinsicWidth() > 0 ) {
-    			image = bitImage;
-    		}
-        }
-        catch (Exception e) {
-        	// TODO: log exception for debugging?
-        }
-        
-        if ( image == null ) {
-        	// no splash provided, so do nothing...
-        	return;
-        }
-
-        // create ImageView to hold the Drawable...
-    	ImageView view = new ImageView(getApplicationContext());
-    	// initialize it with Drawable and full-screen layout parameters
-    	view.setImageDrawable(image);
-    	int width = getWindowManager().getDefaultDisplay().getWidth();
-    	int height = getWindowManager().getDefaultDisplay().getHeight();
-    	FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams( width, height, 0 );
-    	view.setLayoutParams(lp);
-    	view.setScaleType(ScaleType.CENTER);
-    	view.setBackgroundColor(Color.WHITE);
-
-    	// and wrap the image view in a frame layout so that the 
-    	// full-screen layout parameters are honored...
-    	FrameLayout layout = new FrameLayout(getApplicationContext());
-    	layout.addView(view);
-
-    	// Create the toast and set the view to be that of the FrameLayout
-    	Toast t = Toast.makeText(getApplicationContext(), "splash screen", Toast.LENGTH_SHORT);
-    	t.setView(layout);
-    	t.setGravity(Gravity.CENTER, 0, 0);
-    	t.show();
+    @Override
+    protected void onPause() {
+    	dismissDialogs();
+        super.onPause();
     }
-
+    
     /*
      * (non-Javadoc)
      * 
@@ -214,15 +171,6 @@ public class MainMenuActivity extends Activity {
         updateButtons();
     }
 
-    /**
-     * onStop
-     * Re-enable the splash screen.
-     */
-    @Override
-    protected void onStop() {
-    	super.onStop();
-    	mShowSplash = true;
-    }
 
     /**
      * Upon return, check intent for data needed to launch other activities.
@@ -248,6 +196,7 @@ public class MainMenuActivity extends Activity {
                 formPath = intent.getStringExtra(FormEntryActivity.KEY_FORMPATH);
                 String instancePath = intent.getStringExtra(FormEntryActivity.KEY_INSTANCEPATH);
                 i = new Intent("org.odk.collect.android.action.FormEntry");
+                Log.e("Carl***", "loading formpath: " + formPath + " and instance path= " + instancePath);
                 i.putExtra(FormEntryActivity.KEY_FORMPATH, formPath);
                 i.putExtra(FormEntryActivity.KEY_INSTANCEPATH, instancePath);
                 startActivity(i);
@@ -279,7 +228,7 @@ public class MainMenuActivity extends Activity {
         c.close();
 
         // count for downloaded forms
-        ArrayList<String> forms = FileUtils.getFilesAsArrayList(FileUtils.FORMS_PATH);
+        ArrayList<String> forms = FileUtils.getValidFormsAsArrayList(FileUtils.FORMS_PATH);
         if (forms != null) {
             mFormsCount = forms.size();
         } else {
@@ -298,7 +247,8 @@ public class MainMenuActivity extends Activity {
         Intent i = new Intent(this, ServerPreferences.class);
         startActivity(i);
     }
- 
+
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
@@ -318,4 +268,35 @@ public class MainMenuActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
+    
+    private void createErrorDialog(String errorMsg, final boolean shouldExit) {
+		mAlertDialog = new AlertDialog.Builder(this).create();
+		mAlertDialog.setIcon(android.R.drawable.ic_dialog_info);
+		mAlertDialog.setMessage(errorMsg);
+		DialogInterface.OnClickListener errorListener = new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int i) {
+				switch (i) {
+				case DialogInterface.BUTTON1:
+					if (shouldExit) {
+						finish();
+					}
+					break;
+				}
+			}
+		};
+		mAlertDialog.setCancelable(false);
+		mAlertDialog.setButton(getString(R.string.ok), errorListener);
+		mAlertDialog.show();
+	}
+    
+    
+    /**
+	 * Dismiss any showing dialogs that we manage.
+	 */
+	private void dismissDialogs() {
+		if (mAlertDialog != null && mAlertDialog.isShowing()) {
+			mAlertDialog.dismiss();
+		}
+	}
 }

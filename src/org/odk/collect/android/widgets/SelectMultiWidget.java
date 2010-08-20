@@ -14,6 +14,8 @@
 
 package org.odk.collect.android.widgets;
 
+import java.util.Vector;
+
 import org.javarosa.core.model.SelectChoice;
 import org.javarosa.core.model.data.IAnswerData;
 import org.javarosa.core.model.data.SelectMultiData;
@@ -24,15 +26,12 @@ import org.odk.collect.android.views.IAVTLayout;
 import org.odk.collect.android.views.QuestionView;
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.util.TypedValue;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-
-import java.util.Vector;
 
 /**
  * SelctMultiWidget handles multiple selection fields using checkboxes.
@@ -44,15 +43,14 @@ public class SelectMultiWidget extends LinearLayout implements IQuestionWidget {
     private final static int CHECKBOX_ID = 100;
     private boolean mCheckboxInit = true;
     Vector<SelectChoice> mItems;
-    Drawable mDivider;
-
 
     public SelectMultiWidget(Context context) {
         super(context);
     }
 
 
-    public void clearAnswer() {
+    @Override
+	public void clearAnswer() {
         int j = mItems.size();
         for (int i = 0; i < j; i++) {
 
@@ -65,7 +63,8 @@ public class SelectMultiWidget extends LinearLayout implements IQuestionWidget {
     }
 
 
-    public IAnswerData getAnswer() {
+    @Override
+	public IAnswerData getAnswer() {
         Vector<Selection> vc = new Vector<Selection>();
         for (int i = 0; i < mItems.size(); i++) {
             CheckBox c = ((CheckBox) findViewById(CHECKBOX_ID + i));
@@ -85,14 +84,15 @@ public class SelectMultiWidget extends LinearLayout implements IQuestionWidget {
 
 
     @SuppressWarnings("unchecked")
+	@Override
     public void buildView(final FormEntryPrompt prompt) {
         mItems = prompt.getSelectChoices();
 
         setOrientation(LinearLayout.VERTICAL);
 
-        Vector ve = new Vector();
+        Vector<Selection> ve = new Vector<Selection>();
         if (prompt.getAnswerValue() != null) {
-            ve = (Vector) prompt.getAnswerValue().getValue();
+            ve = (Vector<Selection>) prompt.getAnswerValue().getValue();
         }
 
         if (prompt.getSelectChoices() != null) {
@@ -102,7 +102,8 @@ public class SelectMultiWidget extends LinearLayout implements IQuestionWidget {
 
                 // when clicked, check for readonly before toggling
                 c.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    @Override
+					public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                         if (!mCheckboxInit && prompt.isReadOnly()) {
                             if (buttonView.isChecked()) {
                                 buttonView.setChecked(false);
@@ -120,7 +121,7 @@ public class SelectMultiWidget extends LinearLayout implements IQuestionWidget {
                 c.setEnabled(!prompt.isReadOnly());
                 for (int vi = 0; vi < ve.size(); vi++) {
                     // match based on value, not key
-                    if (mItems.get(i).getValue().equals(((Selection) ve.elementAt(vi)).getValue())) {
+                    if (mItems.get(i).getValue().equals(ve.elementAt(vi).getValue())) {
                         c.setChecked(true);
                         break;
                     }
@@ -128,25 +129,18 @@ public class SelectMultiWidget extends LinearLayout implements IQuestionWidget {
                 }
 
                 String audioURI = null;
-                if (prompt.getSelectTextForms(mItems.get(i)).contains(
-                    FormEntryCaption.TEXT_FORM_AUDIO)) {
-                    audioURI =
-                        prompt.getSelectChoiceText(mItems.get(i), FormEntryCaption.TEXT_FORM_AUDIO);
-                }
+                audioURI =
+                        prompt.getSpecialFormSelectChoiceText(mItems.get(i), FormEntryCaption.TEXT_FORM_AUDIO);
+                
 
                 String imageURI = null;
-                if (prompt.getSelectTextForms(mItems.get(i)).contains(
-                    FormEntryCaption.TEXT_FORM_IMAGE)) {
-                    imageURI =
-                        prompt.getSelectChoiceText(mItems.get(i), FormEntryCaption.TEXT_FORM_IMAGE);
-                }
+                imageURI =
+                        prompt.getSpecialFormSelectChoiceText(mItems.get(i), FormEntryCaption.TEXT_FORM_IMAGE);
 
                 String videoURI = null; // TODO: uncomment when video ready
-                /*
-                 * if (prompt.getSelectTextForms(mItems.get(i)).contains(
-                 * FormEntryCaption.TEXT_FORM_IMAGE)) { imageURI =
-                 * prompt.getSelectChoiceText(mItems.get(i), FormEntryCaption.TEXT_FORM_IMAGE); }
-                 */
+                videoURI =
+                		prompt.getSpecialFormSelectChoiceText(mItems.get(i), "video");
+                 
 
                 IAVTLayout mediaLayout = new IAVTLayout(getContext());
                 mediaLayout.setAVT(c, audioURI, imageURI, videoURI);
@@ -166,7 +160,8 @@ public class SelectMultiWidget extends LinearLayout implements IQuestionWidget {
     }
 
 
-    public void setFocus(Context context) {
+    @Override
+	public void setFocus(Context context) {
         // Hide the soft keyboard if it's showing.
         InputMethodManager inputManager =
             (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);

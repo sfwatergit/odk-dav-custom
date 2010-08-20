@@ -153,8 +153,9 @@ public class FormLoaderTask extends AsyncTask<String, String, FormLoaderTask.FEC
 
         // import existing data into formdef
         if (instancePath != null) {
-            fd.initialize(false);
+            // This order is important.  Import data, then initialize.
             importData(instancePath, fec);
+            fd.initialize(false);
         } else {
             fd.initialize(true);
         }
@@ -163,12 +164,14 @@ public class FormLoaderTask extends AsyncTask<String, String, FormLoaderTask.FEC
         // This is a singleton, how do we ensure that we're not doing this
         // multiple times?
         String mediaPath =
-            formXml.getName().substring(0, formXml.getName().lastIndexOf(".")) + "-media";
+            formXml.getName().substring(0, formXml.getName().lastIndexOf("."));
+        
+        Log.e("Carl", "mediaPath = " + mediaPath);
        
         if (ReferenceManager._().getFactories().length == 0) {
             ReferenceManager._().addReferenceFactory(
                 new FileReferenceFactory(Environment.getExternalStorageDirectory() + "/odk/forms/"
-                        + mediaPath));
+                        + mediaPath + "-media"));
             ReferenceManager._()
                     .addRootTranslator(new RootTranslator("jr://images/", "jr://file/"));
             ReferenceManager._().addRootTranslator(new RootTranslator("jr://audio/", "jr://file/"));
